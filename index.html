@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ALLID – Automation for mushroom production</title>
-<meta name="description" content="ALLID: automation for mushroom production. An idea in development by Veiga Labs.">
+<title>ALLID – Climate control for mushroom growers</title>
+<meta name="description" content="ALLID: modular climate monitoring and control for mushroom growers. CO₂, humidity, temperature, fresh air and batch records, from your phone. Concept in development by Veiga Labs.">
+<!-- ALLID site. Concept stage: no prices, no dates. -->
 <style>
-  :root { --bg:#000000; --panel:#0f1419; --line:#1a2332; --text:#ffffff; --muted:#b0b8c1; --accent:#b388ff; --accent2:#e8d9b5; --glow:rgba(179,136,255,.22); }
+  :root { --bg:#000000; --panel:#0f1419; --line:#1a2332; --text:#ffffff; --muted:#b0b8c1; --accent:#b388ff; --accent2:#e8d9b5; --glow:rgba(179,136,255,.22); --bad:#ff8a9b; }
   * { box-sizing:border-box; margin:0; padding:0; }
   html { scroll-behavior:smooth; }
   body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; line-height:1.6; }
@@ -36,9 +37,22 @@
   .feat div { border-left:2px solid var(--accent); padding-left:16px; }
   .feat h3 { font-weight:500; font-size:17px; margin-bottom:4px; }
   .feat p { color:var(--muted); font-size:15px; }
+  .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:28px; counter-reset:s; }
+  .steps div { counter-increment:s; }
+  .steps div::before { content:"0" counter(s); display:block; color:var(--accent2); font-size:13px; letter-spacing:.2em; margin-bottom:6px; }
+  .steps h3 { font-weight:500; font-size:17px; margin-bottom:4px; }
+  .steps p { color:var(--muted); font-size:15px; }
+  .split { display:grid; gap:40px; grid-template-columns:1fr; align-items:center; }
+  @media (min-width:800px) { .split { grid-template-columns:1.1fr .9fr; } }
+  .phone { width:min(340px,100%); margin:0 auto; border:1px solid var(--line); border-radius:28px; padding:14px; background:var(--panel); box-shadow:0 0 40px var(--glow); }
+  .phone img { display:block; width:100%; height:auto; border-radius:16px; }
+  .phone .cap { margin-top:8px; text-align:center; color:var(--muted); font-size:11px; }
+  .range { margin:20px 0; border:1px solid var(--line); background:var(--panel); padding:20px 24px; max-width:720px; }
+  .range .k { color:var(--accent2); font-size:12px; letter-spacing:.14em; text-transform:uppercase; }
+  .range p { color:var(--muted); font-size:15px; margin-top:6px; }
   form { display:grid; gap:16px; max-width:480px; }
-  input { width:100%; padding:14px 16px; min-height:48px; background:var(--panel); border:1px solid var(--line); color:var(--text); font:inherit; font-size:16px; transition:border-color .2s; }
-  input:focus { outline:none; border-color:var(--accent); }
+  input, select { width:100%; padding:14px 16px; min-height:48px; background:var(--panel); border:1px solid var(--line); color:var(--text); font:inherit; font-size:16px; transition:border-color .2s; }
+  input:focus, select:focus { outline:none; border-color:var(--accent); }
   button.submit { padding:14px 32px; min-height:48px; background:transparent; border:2px solid var(--accent); color:var(--accent); font:inherit; font-size:14px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; width:fit-content; transition:all .2s; font-weight:500; }
   button.submit:hover { background:var(--accent); color:var(--bg); }
   .note { margin-top:20px; color:var(--muted); font-size:14px; }
@@ -49,15 +63,9 @@
   .hero-wrap .hero { position:relative; min-height:72vh; padding-bottom:150px; }
   .art { position:absolute; right:0; bottom:0; width:min(560px,60%); height:90%; pointer-events:none; opacity:.9; }
   .art svg { width:100%; height:100%; stroke:var(--accent); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-  
   .art .m { transform-box:fill-box; transform-origin:50% 100%; animation:pop 12s infinite both; }
   .art .m2 { animation-delay:.8s; } .art .m3 { animation-delay:1.6s; } .art .m4 { animation-delay:2.4s; }
-  @keyframes pop {
-    0%   { transform:scale(0); animation-timing-function:cubic-bezier(.34,1.7,.64,1); }
-    12%  { transform:scale(1); }
-    88%  { transform:scale(1); animation-timing-function:ease-in; }
-    97%,100% { transform:scale(0); }
-  }
+  @keyframes pop { 0% { transform:scale(0); animation-timing-function:cubic-bezier(.34,1.7,.64,1); } 12% { transform:scale(1); } 88% { transform:scale(1); animation-timing-function:ease-in; } 97%,100% { transform:scale(0); } }
   .art .sway { transform-box:fill-box; transform-origin:50% 100%; animation:sway 5s ease-in-out infinite; }
   .art .m2 .sway { animation-duration:6.3s; animation-delay:-1.2s; } .art .m3 .sway { animation-duration:4.4s; animation-delay:-2s; } .art .m4 .sway { animation-duration:3.6s; animation-delay:-.6s; }
   @keyframes sway { 0%,100% { transform:rotate(-1.8deg); } 50% { transform:rotate(1.8deg); } }
@@ -97,8 +105,10 @@
   </div>
   <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mainnav"><span></span><span></span><span></span></button>
   <nav id="mainnav">
-    <a href="#about">About</a>
-    <a href="#focus">Ideas</a>
+    <a href="#why">Why CO₂</a>
+    <a href="#modules">Modules</a>
+    <a href="#phone">Phone</a>
+    <a href="#safety">Safety</a>
     <a href="#notify">Stay in touch</a>
   </nav>
 </header>
@@ -106,29 +116,69 @@
 <div class="hero-wrap">
   <div class="art anim" aria-hidden="true"><svg viewBox="0 0 400 400"><path d="M20 372 H380" stroke-opacity=".35"/><g class="m m1"><g class="sway"><path d="M188 372 C190 330 190 300 192 270 L208 270 C210 300 210 330 212 372"/><path class="cap" d="M140 272 C140 205 170 170 200 170 C230 170 260 205 260 272 Z"/><path d="M160 272 Q200 292 240 272" stroke-opacity=".6"/><circle class="spot" cx="178" cy="212" r="6"/><circle class="spot" cx="216" cy="196" r="4"/><circle class="spot" cx="229" cy="234" r="5"/></g></g><g class="m m2"><g class="sway"><path d="M88 372 C90 345 90 330 92 312 L102 312 C104 330 104 345 106 372"/><path class="cap" d="M62 314 C62 282 78 262 97 262 C116 262 132 282 132 314 Z"/><path d="M72 314 Q97 328 122 314" stroke-opacity=".6"/><circle class="spot" cx="86" cy="288" r="4"/><circle class="spot" cx="108" cy="282" r="3"/></g></g><g class="m m3"><g class="sway"><path d="M292 372 C293 355 293 345 294 336 L304 336 C305 345 305 355 306 372"/><path class="cap" d="M272 338 C272 316 284 302 299 302 C314 302 326 316 326 338 Z"/><path d="M280 338 Q299 348 318 338" stroke-opacity=".6"/><circle class="spot" cx="292" cy="320" r="3"/><circle class="spot" cx="308" cy="316" r="2.5"/></g></g><g class="m m4"><g class="sway"><path d="M343 372 V358 H351 V372"/><path class="cap" d="M333 360 C333 348 340 342 347 342 C354 342 361 348 361 360 Z"/></g></g><g class="spores"><circle class="sp" style="--dx:-30px;--dy:-190px;animation-delay:1.6s" cx="190" cy="168" r="2.4"/><circle class="sp" style="--dx:25px;--dy:-210px;animation-delay:2.4s" cx="212" cy="172" r="1.8"/><circle class="sp" style="--dx:-45px;--dy:-170px;animation-delay:3.1s" cx="230" cy="185" r="2.8"/><circle class="sp" style="--dx:35px;--dy:-160px;animation-delay:4.0s" cx="170" cy="190" r="1.6"/><circle class="sp" style="--dx:-20px;--dy:-150px;animation-delay:2.0s" cx="98" cy="262" r="2.2"/><circle class="sp" style="--dx:30px;--dy:-140px;animation-delay:3.6s" cx="115" cy="270" r="1.5"/><circle class="sp" style="--dx:-25px;--dy:-130px;animation-delay:2.8s" cx="299" cy="302" r="2"/><circle class="sp" style="--dx:22px;--dy:-150px;animation-delay:4.6s" cx="312" cy="308" r="1.6"/><circle class="sp" style="--dx:-18px;--dy:-120px;animation-delay:5.2s" cx="347" cy="342" r="1.5"/><circle class="sp" style="--dx:40px;--dy:-200px;animation-delay:5.8s" cx="200" cy="170" r="2.6"/></g></svg></div>
   <section class="hero">
-    <h1>Automation for <span>mushroom production.</span></h1>
-    <p class="tagline">An idea in progress</p>
-    <p>ALLID is an early idea from Veiga Labs: automation to help produce mushrooms more consistently.</p>
+    <h1>Climate control for <span>mushroom growers.</span></h1>
+    <p class="tagline">Concept stage</p>
+    <p>ALLID is a modular system that watches CO₂, humidity and temperature in your grow room, brings in fresh air and humidifies for each species and growth stage, and shows you everything on your phone.</p>
     <a class="btn" href="#notify">Tell us what you grow</a>
   </section>
 </div>
 
-<section id="about">
-  <h2>About ALLID</h2>
-  <p class="lead">Mushrooms are sensitive to their environment. Small changes in humidity, temperature and fresh air can make a big difference.</p>
-  <p class="body">ALLID is at the idea stage. We are exploring how automation could help growers, and we would like to talk to people who produce mushrooms, or who want to build this with us.</p>
-  <span class="tag">Idea</span>
+<section id="why">
+  <h2>Why CO₂ matters</h2>
+  <p class="lead">CO₂ shapes the mushroom, not just its growth.</p>
+  <p class="body">During fruiting, too much CO₂ tends to give long, thin stems and small, misshapen caps. Lower CO₂ gives fuller caps. Growers usually manage this by guessing at ventilation and by checking the room several times a day. Fresh air also dries the room, so CO₂ and humidity have to be controlled together.</p>
+  <div class="range"><div class="k">Typical starting point, oyster fruiting</div><p>CO₂ below about 1,000 ppm and humidity around 85 to 95%. Each species and strain is different, so ALLID profiles are editable starting points, not rules.</p></div>
 </section>
 
-<section id="focus">
-  <h2>Where automation could help</h2>
-  <div class="feat">
-    <div><h3>Humidity and temperature</h3><p>Keeping the growing room steady, hour after hour.</p></div>
-    <div><h3>Fresh air</h3><p>Air exchange at the right moments.</p></div>
-    <div><h3>Routine tasks</h3><p>Taking repetitive work off the grower.</p></div>
-    <div><h3>Records</h3><p>A clear history of what happened in each batch.</p></div>
+<section id="modules">
+  <h2>Modules you add as you grow</h2>
+  <div class="grid">
+    <div class="card"><h3>CO₂ module</h3><p>Reads CO₂ and drives the fresh-air fan, with a minimum air-exchange cycle and a safe fallback if the sensor stops responding.</p><span class="tag">Fresh air</span></div>
+    <div class="card"><h3>Climate module</h3><p>Humidity and temperature in the room, controlling a humidifier and cooling, working together with the CO₂ module.</p><span class="tag">Humidity · Temperature</span></div>
+    <div class="card"><h3>Species and stage profiles</h3><p>Editable profiles for colonisation, pinning and fruiting. Switch stage and the whole room follows.</p><span class="tag">Profiles</span></div>
+    <div class="card"><h3>Batch records</h3><p>Log each batch, its stages and harvests, and compare climate with yield over time.</p><span class="tag">Records</span></div>
   </div>
-  <p class="note">Directions we are exploring. Nothing is decided yet.</p>
+  <p class="note">Modules chain together with simple network cables and identify themselves to the controller. Add one when you need it.</p>
+</section>
+
+<section id="how">
+  <h2>How it works</h2>
+  <div class="steps">
+    <div><h3>Plug in modules</h3><p>Chain them with network cables. The controller recognises each one.</p></div>
+    <div><h3>Pick a profile</h3><p>Choose species and stage, or set your own limits.</p></div>
+    <div><h3>Let it run</h3><p>It keeps CO₂ and humidity in range, and tells you when it needs a hand.</p></div>
+    <div><h3>Learn from each batch</h3><p>Compare climate and yield, and refine your profiles.</p></div>
+  </div>
+</section>
+
+<section id="phone">
+  <h2>On your phone</h2>
+  <div class="split">
+    <div>
+      <p class="lead">Check the room from the doorway, or from home.</p>
+      <p class="body"><b style="color:var(--text);font-weight:500">Close by:</b> the controller creates its own Wi-Fi. Connect your phone and open the page, with no internet or router needed. It also works as the setup screen.</p>
+      <p class="body"><b style="color:var(--text);font-weight:500">From anywhere:</b> connect the controller to your Wi-Fi and it reports to the cloud, so you can watch the room and get alerts on your phone.</p>
+      <p class="body"><b style="color:var(--text);font-weight:500">Always local:</b> the room keeps running by itself if the internet is down. Alerts are stored and sent when the connection returns.</p>
+      <span class="tag">Screen from our simulation</span>
+    </div>
+    <div class="phone"><img src="images/app-panel.jpg" width="390" height="871" alt="ALLID app panel on a phone: CO2 and humidity gauges, growth stage selector and a CO2 chart with the fan cycling" loading="lazy"><div class="cap">Simulation screen, not real data</div></div>
+  </div>
+</section>
+
+<section id="safety">
+  <h2>Safety first</h2>
+  <p class="lead">High CO₂ is hazardous for people entering a closed room.</p>
+  <p class="body">ALLID warns locally when CO₂ reaches a level you set. If it loses a sensor it falls back to a safe ventilation cycle, instead of stopping or running forever. Mains-powered outputs use certified components and must be installed by a qualified person.</p>
+</section>
+
+<section id="who">
+  <h2>Who it is for</h2>
+  <div class="feat">
+    <div><h3>Small producers</h3><p>Repeatable results without watching the room all day.</p></div>
+    <div><h3>Growing farms</h3><p>The same setup, room after room, as you add modules.</p></div>
+    <div><h3>Serious hobbyists</h3><p>Oyster, lion's mane and shiitake first.</p></div>
+  </div>
+  <p class="note">Concept stage. Nothing is final: no prices, no dates yet.</p>
 </section>
 
 <section id="notify">
@@ -137,7 +187,7 @@
     <input type="hidden" name="product" value="ALLID">
     <input type="hidden" name="_subject" value="ALLID – new sign-up from the website">
     <input type="email" name="email" placeholder="Your email" required aria-label="Your email">
-    <input type="text" name="interest" placeholder="What do you grow, or how can we help? (optional)" aria-label="What do you grow, or how can we help? (optional)">
+    <input type="text" name="interest" placeholder="What do you grow, and what is hardest to control? (optional)" aria-label="What do you grow, and what is hardest to control? (optional)">
     <button class="submit" type="submit">Get in touch</button>
   </form>
   <p class="note">Please do not send confidential information in this form.</p>
